@@ -17,6 +17,8 @@ from diffusion_policy.policy.base_image_policy import BaseImagePolicy
 from diffusion_policy.common.pytorch_util import dict_apply
 from diffusion_policy.env_runner.base_image_runner import BaseImageRunner
 
+import time
+
 class PushTImageRunner(BaseImageRunner):
     def __init__(self,
             output_dir,
@@ -155,6 +157,8 @@ class PushTImageRunner(BaseImageRunner):
         # allocate data
         all_video_paths = [None] * n_inits
         all_rewards = [None] * n_inits
+        inference_time = []
+        inference_real_time = []
 
         for chunk_idx in range(n_chunks):
             start = chunk_idx * n_envs
@@ -181,6 +185,8 @@ class PushTImageRunner(BaseImageRunner):
             pbar = tqdm.tqdm(total=self.max_steps, desc=f"Eval PushtImageRunner {chunk_idx+1}/{n_chunks}", 
                 leave=False, mininterval=self.tqdm_interval_sec)
             done = False
+            first = True
+
             while not done:
                 # create obs dict
                 np_obs_dict = dict(obs)
@@ -195,8 +201,22 @@ class PushTImageRunner(BaseImageRunner):
                         device=device))
 
                 # run policy
+                
+                start_t = time.time()
                 with torch.no_grad():
                     action_dict = policy.predict_action(obs_dict)
+                end_t = time.time()
+
+                duration = (end_t-start_t)
+                # with open("/proj/daxia/diffusion/diffusion_policy/data/default/time.txt", "a") as f:
+                #     f.write(duration + "\n")
+                inference_time.append(duration)
+
+
+                print(f"Inference time(s): {duration:.5f}")
+                if not first:
+                    inference_real_time.append(duration)
+                first = False
 
                 # device_transfer
                 np_action_dict = dict_apply(action_dict,
@@ -220,6 +240,7 @@ class PushTImageRunner(BaseImageRunner):
 
         # log
         max_rewards = collections.defaultdict(list)
+        last_rewards = collections.defaultdict(list)
         log_data = dict()
         # results reported in the paper are generated using the commented out line below
         # which will only report and average metrics from first n_envs initial condition and seeds
@@ -227,14 +248,18 @@ class PushTImageRunner(BaseImageRunner):
         # 1. This bug only affects the variance of metrics, not their mean
         # 2. All baseline methods are evaluated using the same code
         # to completely reproduce reported numbers, uncomment this line:
-        # for i in range(len(self.env_fns)):
+        for i in range(len(self.env_fns)):
         # and comment out this line
-        for i in range(n_inits):
+        # for i in range(n_inits):
             seed = self.env_seeds[i]
             prefix = self.env_prefixs[i]
             max_reward = np.max(all_rewards[i])
             max_rewards[prefix].append(max_reward)
             log_data[prefix+f'sim_max_reward_{seed}'] = max_reward
+
+            last_reward = all_rewards[i][-1] #change the reward to be the last reward
+            last_rewards[prefix].append(last_reward)
+            log_data[prefix+f'sim_last_reward_{seed}'] = last_reward
 
             # visualize sim
             video_path = all_video_paths[i]
@@ -247,5 +272,14 @@ class PushTImageRunner(BaseImageRunner):
             name = prefix+'mean_score'
             value = np.mean(value)
             log_data[name] = value
+            log_data[prefix+'mean_max_score'] = np.average(value)
+
+        for prefix, value in last_rewards.items():
+            value = np.mean(value)
+            log_data[prefix+'mean_last_score'] = value
+
+
+        log_data['inference_time'] = np.average(inference_time)
+        log_data['inference_real_time'] = np.average(inference_real_time)
 
         return log_data

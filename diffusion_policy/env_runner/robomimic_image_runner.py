@@ -23,6 +23,8 @@ import robomimic.utils.file_utils as FileUtils
 import robomimic.utils.env_utils as EnvUtils
 import robomimic.utils.obs_utils as ObsUtils
 
+import time
+
 
 def create_env(env_meta, shape_meta, enable_render=True):
     modality_mapping = collections.defaultdict(list)
@@ -248,6 +250,8 @@ class RobomimicImageRunner(BaseImageRunner):
         # allocate data
         all_video_paths = [None] * n_inits
         all_rewards = [None] * n_inits
+        inference_time = []
+        inference_real_time = []
 
         for chunk_idx in range(n_chunks):
             start = chunk_idx * n_envs
@@ -276,6 +280,8 @@ class RobomimicImageRunner(BaseImageRunner):
                 leave=False, mininterval=self.tqdm_interval_sec)
             
             done = False
+            first = True
+
             while not done:
                 # create obs dict
                 np_obs_dict = dict(obs)
@@ -290,8 +296,17 @@ class RobomimicImageRunner(BaseImageRunner):
                         device=device))
 
                 # run policy
+                start_t = time.time()
                 with torch.no_grad():
                     action_dict = policy.predict_action(obs_dict)
+                end_t = time.time()
+
+                duration = (end_t-start_t)
+                inference_time.append(duration)
+                print(f"Inference time(s): {duration:.5f}")
+                if not first:
+                    inference_real_time.append(duration)
+                first = False
 
                 # device_transfer
                 np_action_dict = dict_apply(action_dict,
@@ -323,6 +338,7 @@ class RobomimicImageRunner(BaseImageRunner):
         
         # log
         max_rewards = collections.defaultdict(list)
+        last_rewards = collections.defaultdict(list)
         log_data = dict()
         # results reported in the paper are generated using the commented out line below
         # which will only report and average metrics from first n_envs initial condition and seeds
@@ -339,6 +355,10 @@ class RobomimicImageRunner(BaseImageRunner):
             max_rewards[prefix].append(max_reward)
             log_data[prefix+f'sim_max_reward_{seed}'] = max_reward
 
+            last_reward = all_rewards[i][-1] #change the reward to be the last reward
+            last_rewards[prefix].append(last_reward)
+            log_data[prefix+f'sim_last_reward_{seed}'] = last_reward
+
             # visualize sim
             video_path = all_video_paths[i]
             if video_path is not None:
@@ -350,6 +370,16 @@ class RobomimicImageRunner(BaseImageRunner):
             name = prefix+'mean_score'
             value = np.mean(value)
             log_data[name] = value
+            log_data[prefix+'mean_max_score'] = np.average(value)
+
+        
+        for prefix, value in last_rewards.items():
+            value = np.mean(value)
+            log_data[prefix+'mean_last_score'] = value
+
+        log_data['inference_time'] = np.average(inference_time)
+        log_data['inference_real_time'] = np.average(inference_real_time)
+
 
         return log_data
 

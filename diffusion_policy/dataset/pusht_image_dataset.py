@@ -22,6 +22,7 @@ class PushTImageDataset(BaseImageDataset):
             ):
         
         super().__init__()
+        zarr_path="/proj/rep-learning-robotics/users/x_yufdu/daxia/diffusion/diffusion_policy/data/pusht/pusht_cchi_v7_replay.zarr"
         self.replay_buffer = ReplayBuffer.copy_from_path(
             zarr_path, keys=['img', 'state', 'action'])
         val_mask = get_val_mask(

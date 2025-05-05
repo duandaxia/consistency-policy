@@ -143,7 +143,7 @@ task:
   dataset:
     _target_: diffusion_policy.dataset.robomimic_replay_image_dataset.RobomimicReplayImageDataset
     abs_action: true
-    dataset_path: data/robomimic/datasets/tool_hang/ph/image_abs.hdf5
+    dataset_path: /proj/rep-learning-robotics/users/x_yufdu/daxia/diffusion/realtime_dp/diffusion_policy/data/robomimic/datasets/tool_hang/ph/image_abs.hdf5
     horizon: 16
     n_obs_steps: 2
     pad_after: 7
@@ -178,13 +178,13 @@ task:
           - 2
     use_cache: true
     val_ratio: 0.02
-  dataset_path: data/robomimic/datasets/tool_hang/ph/image_abs.hdf5
+  dataset_path: /proj/rep-learning-robotics/users/x_yufdu/daxia/diffusion/realtime_dp/diffusion_policy/data/robomimic/datasets/tool_hang/ph/image_abs.hdf5
   dataset_type: ph
   env_runner:
     _target_: diffusion_policy.env_runner.robomimic_image_runner.RobomimicImageRunner
     abs_action: true
     crf: 22
-    dataset_path: data/robomimic/datasets/tool_hang/ph/image_abs.hdf5
+    dataset_path: /proj/rep-learning-robotics/users/x_yufdu/daxia/diffusion/realtime_dp/diffusion_policy/data/robomimic/datasets/tool_hang/ph/image_abs.hdf5
     fps: 10
     max_steps: 600
     n_action_steps: 8
@@ -275,7 +275,7 @@ training:
   use_ema: true
   val_every: 1
   val_sample_every: 5
-  output_dir: outputs/edm/tool_hang
+  output_dir: outputs/edm/image/th
 val_dataloader:
   batch_size: 64
   num_workers: 8

@@ -28,7 +28,7 @@ env_runner:
 
 dataset:
   _target_: diffusion_policy.dataset.kitchen_mjl_lowdim_dataset.KitchenMjlLowdimDataset
-  dataset_dir: data/kitchen/kitchen_demos_multitask
+  dataset_dir: /proj/rep-learning-robotics/users/x_yufdu/daxia/diffusion/realtime_dp/diffusion_policy/data/kitchen/kitchen_demos_multitask
   horizon: ${horizon}
   pad_before: ${eval:'${n_obs_steps}-1'}
   pad_after: ${eval:'${n_action_steps}-1'}

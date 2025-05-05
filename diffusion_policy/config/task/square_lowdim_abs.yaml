@@ -8,7 +8,7 @@ obs_keys: &obs_keys ['object', 'robot0_eef_pos', 'robot0_eef_quat', 'robot0_grip
 task_name: &task_name square
 dataset_type: &dataset_type ph
 abs_action: &abs_action True
-dataset_path: &dataset_path data/robomimic/datasets/${task.task_name}/${task.dataset_type}/low_dim_abs.hdf5
+dataset_path: &dataset_path /proj/rep-learning-robotics/users/x_yufdu/daxia/diffusion/realtime_dp/diffusion_policy/data/robomimic/datasets/${task.task_name}/${task.dataset_type}/low_dim_abs.hdf5
 
 
 env_runner:

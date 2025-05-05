@@ -24,7 +24,7 @@ env_runner:
 
 dataset:
   _target_: diffusion_policy.dataset.blockpush_lowdim_dataset.BlockPushLowdimDataset
-  zarr_path: data/block_pushing/multimodal_push_seed_abs.zarr
+  zarr_path: /proj/rep-learning-robotics/users/x_yufdu/daxia/diffusion/realtime_dp/diffusion_policy/data/block_pushing/multimodal_push_seed_abs.zarr
   horizon: ${horizon}
   pad_before: ${eval:'${n_obs_steps}-1'}
   pad_after: ${eval:'${n_action_steps}-1'}

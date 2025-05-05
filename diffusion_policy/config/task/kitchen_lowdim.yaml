@@ -4,7 +4,7 @@ obs_dim: 60
 action_dim: 9
 keypoint_dim: 3
 
-dataset_dir: &dataset_dir data/kitchen
+dataset_dir: &dataset_dir /proj/rep-learning-robotics/users/x_yufdu/daxia/diffusion/realtime_dp/diffusion_policy/data/kitchen
 
 env_runner:
   _target_: diffusion_policy.env_runner.kitchen_lowdim_runner.KitchenLowdimRunner
